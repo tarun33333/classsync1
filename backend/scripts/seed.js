@@ -90,9 +90,6 @@ const seedData = async () => {
             const deptTeachers = teachersByDept[dept];
             const subjects = deptSubjects[dept];
 
-            // Create a routine for the "current" semester batch (e.g., Sem 3)
-            // Batch 2022-2026, Sem 3, Year 2
-
             const timetable = [];
 
             for (const day of days) {
@@ -125,9 +122,119 @@ const seedData = async () => {
 
         console.log('Class Routines Created!');
 
-        // --- Create History Not Implemented for new complex schema in this seed run because it requires unrolling the nested structure ---
-        // Leaving it empty for now to focus on the Schema Update success.
+        // --- Create Historical Data (Past 7 Days) ---
+        console.log('Creating Historical Data...');
 
+        const cseTeacher = teachersByDept['CSE'][0];
+        const cseStudent = studentsByDept['CSE'][0];
+        const cseSubjects = deptSubjects['CSE'];
+
+        for (let i = 1; i <= 7; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+            if (dayName === 'Sunday') continue; // Skip Sunday
+
+            // Create 6 sessions per day
+            for (let slot = 0; slot < 6; slot++) {
+                const startTime = new Date(date);
+                const [sh, sm] = timeSlots[slot].start.split(':');
+                startTime.setHours(parseInt(sh), parseInt(sm), 0);
+
+                const endTime = new Date(date);
+                const [eh, em] = timeSlots[slot].end.split(':');
+                endTime.setHours(parseInt(eh), parseInt(em), 0);
+
+                // Create Session (Inactive)
+                const session = await Session.create({
+                    teacher: cseTeacher._id,
+                    subject: cseSubjects[slot],
+                    section: 'A',
+                    periodNo: slot + 1,
+                    startTime: startTime,
+                    endTime: endTime,
+                    isActive: false
+                });
+
+                // Determine Attendance Status (Randomly absent)
+                const isPresent = Math.random() > 0.2; // 80% attendance
+                const status = isPresent ? 'present' : 'absent';
+
+                // Create Attendance
+                if (status === 'present') {
+                    await Attendance.create({
+                        session: session._id,
+                        student: cseStudent._id,
+                        status: 'present',
+                        method: 'manual',
+                        verified: true,
+                        timestamp: startTime
+                    });
+                } else {
+                    await Attendance.create({
+                        session: session._id,
+                        student: cseStudent._id,
+                        status: 'absent',
+                        method: 'manual',
+                        verified: false,
+                        timestamp: startTime
+                    });
+                }
+
+                // Create ClassHistory
+                await ClassHistory.create({
+                    _id: session._id,
+                    teacher: cseTeacher._id,
+                    subject: cseSubjects[slot],
+                    section: 'A',
+                    semester: 3, // Current Sem
+                    startTime: startTime,
+                    endTime: endTime,
+                    presentCount: isPresent ? 1 : 0,
+                    absentCount: isPresent ? 0 : 1
+                });
+            }
+        }
+
+        // --- Create Past Semester Data (Sem 1 & 2) ---
+        console.log('Creating Past Semester Data...');
+        const pastSems = [1, 2];
+        for (const sem of pastSems) {
+            // Simulate ~50 classes per semester summary
+            for (let i = 0; i < 50; i++) {
+                const isPresent = Math.random() > (sem === 1 ? 0.3 : 0.1); // Sem 1: 70%, Sem 2: 90%
+
+                // Create a "Dummy" session ID for aggregation
+                const dummySessionId = new mongoose.Types.ObjectId();
+                const sessionDate = new Date();
+                sessionDate.setMonth(sessionDate.getMonth() - ((3 - sem) * 6)); // Back in time
+
+                await Attendance.create({
+                    session: dummySessionId,
+                    student: cseStudent._id,
+                    status: isPresent ? 'present' : 'absent',
+                    method: 'manual',
+                    verified: true,
+                    timestamp: sessionDate
+                });
+
+                // Create ClassHistory for aggregation
+                await ClassHistory.create({
+                    _id: dummySessionId,
+                    teacher: cseTeacher._id,
+                    subject: cseSubjects[i % 6],
+                    section: 'A',
+                    semester: sem,
+                    startTime: sessionDate,
+                    endTime: sessionDate,
+                    presentCount: 1,
+                    absentCount: 0
+                });
+            }
+        }
+
+        console.log('Historical Data Seeding Complete!');
         console.log('Seeding Complete!');
         console.log('Credentials:');
         console.log('  Teacher (ECE): teacher1.ece@test.com / 111');

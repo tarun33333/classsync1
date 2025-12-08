@@ -83,7 +83,9 @@ const updateODStatus = async (req, res) => {
 // @access  Student
 const getMyODRequests = async (req, res) => {
     try {
-        const requests = await ODRequest.find({ student: req.user._id }).sort({ createdAt: -1 });
+        const requests = await ODRequest.find({ student: req.user._id })
+            .populate('approvedBy', 'name')
+            .sort({ createdAt: -1 });
         res.json(requests);
     } catch (error) {
         res.status(500).json({ message: error.message });

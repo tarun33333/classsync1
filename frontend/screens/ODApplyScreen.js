@@ -29,6 +29,16 @@ const ODApplyScreen = ({ navigation }) => {
         }
     };
 
+    const getStats = () => {
+        const total = history.length;
+        const approved = history.filter(h => h.status === 'Approved').length;
+        const rejected = history.filter(h => h.status === 'Rejected').length;
+        const pending = history.filter(h => h.status === 'Pending').length;
+        return { total, approved, rejected, pending };
+    };
+
+    const stats = getStats();
+
     const onFromChange = (event, selectedDate) => {
         setShowFrom(Platform.OS === 'ios');
         if (selectedDate) {
@@ -80,12 +90,17 @@ const ODApplyScreen = ({ navigation }) => {
 
     const renderHistoryItem = ({ item }) => (
         <View style={styles.historyCard}>
-            <View>
+            <View style={{ flex: 1 }}>
                 <Text style={styles.historyDate}>
                     {new Date(item.fromDate).toLocaleDateString()}
                     {item.odType === 'Period' ? ` (Periods: ${item.periods.join(', ')})` : ` - ${new Date(item.toDate).toLocaleDateString()}`}
                 </Text>
                 <Text style={styles.historyReason}>{item.reason}</Text>
+                {item.approvedBy && (
+                    <Text style={styles.approverText}>
+                        {item.status === 'Approved' ? 'Approved by' : 'Rejected by'}: {item.approvedBy.name}
+                    </Text>
+                )}
             </View>
             <View style={[styles.badge,
             item.status === 'Approved' ? styles.bgGreen :
@@ -98,6 +113,26 @@ const ODApplyScreen = ({ navigation }) => {
 
     return (
         <ScrollView style={styles.container}>
+            {/* Stats Summary */}
+            <View style={styles.statsContainer}>
+                <View style={[styles.statBox, { backgroundColor: '#e0f2fe' }]}>
+                    <Text style={[styles.statNumber, { color: '#0369a1' }]}>{stats.total}</Text>
+                    <Text style={[styles.statLabel, { color: '#0369a1' }]}>Total</Text>
+                </View>
+                <View style={[styles.statBox, { backgroundColor: '#dcfce7' }]}>
+                    <Text style={[styles.statNumber, { color: '#15803d' }]}>{stats.approved}</Text>
+                    <Text style={[styles.statLabel, { color: '#15803d' }]}>Approved</Text>
+                </View>
+                <View style={[styles.statBox, { backgroundColor: '#fef9c3' }]}>
+                    <Text style={[styles.statNumber, { color: '#a16207' }]}>{stats.pending}</Text>
+                    <Text style={[styles.statLabel, { color: '#a16207' }]}>Pending</Text>
+                </View>
+                <View style={[styles.statBox, { backgroundColor: '#fee2e2' }]}>
+                    <Text style={[styles.statNumber, { color: '#b91c1c' }]}>{stats.rejected}</Text>
+                    <Text style={[styles.statLabel, { color: '#b91c1c' }]}>Rejected</Text>
+                </View>
+            </View>
+
             <Text style={styles.header}>New Application</Text>
 
             <View style={styles.toggleRow}>
@@ -186,6 +221,11 @@ const ODApplyScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+    statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
+    statBox: { flex: 1, padding: 10, borderRadius: 10, alignItems: 'center', marginHorizontal: 3 },
+    statNumber: { fontSize: 18, fontWeight: 'bold' },
+    statLabel: { fontSize: 12, fontWeight: '600' },
+
     header: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#333' },
     toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
     label: { fontSize: 16, fontWeight: '600', marginTop: 10, marginBottom: 5 },
@@ -210,7 +250,9 @@ const styles = StyleSheet.create({
     historyCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, backgroundColor: '#f8f9fa', borderRadius: 8, borderWidth: 1, borderColor: '#eee' },
     historyDate: { fontWeight: 'bold', color: '#333' },
     historyReason: { fontSize: 12, color: '#666', marginTop: 2 },
-    badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+    approverText: { fontSize: 11, color: '#555', marginTop: 4, fontStyle: 'italic' },
+
+    badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start' },
     bgGreen: { backgroundColor: '#d1fae5' },
     bgRed: { backgroundColor: '#ffe0e3' },
     bgYellow: { backgroundColor: '#fff3cd' },
