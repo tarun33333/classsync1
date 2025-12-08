@@ -46,6 +46,12 @@ const ProfileScreen = () => {
                             <Text style={styles.label}>Department</Text>
                             <Text style={styles.value}>{userInfo?.department}</Text>
                         </View>
+                        {userInfo?.advisorName && (
+                            <View style={styles.infoRow}>
+                                <Text style={styles.label}>Class Advisor</Text>
+                                <Text style={styles.value}>{userInfo.advisorName}</Text>
+                            </View>
+                        )}
                     </>
                 )}
 

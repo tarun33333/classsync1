@@ -113,6 +113,14 @@ const TeacherHomeScreen = ({ navigation }) => {
                 <Text style={styles.fullScheduleText}>View Full Weekly Schedule</Text>
             </TouchableOpacity>
 
+            {userInfo.isAdvisor && (
+                <TouchableOpacity
+                    style={[styles.fullScheduleBtn, { backgroundColor: '#d1fae5', marginTop: 0 }]}
+                    onPress={() => navigation.navigate('AdvisorDashboard')}
+                >
+                    <Text style={[styles.fullScheduleText, { color: '#065f46' }]}>Advisor Dashboard (OD Requests)</Text>
+                </TouchableOpacity>
+            )}
 
         </View>
     );

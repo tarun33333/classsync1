@@ -3,9 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, RefreshControl, ScrollView, D
 import { AuthContext } from '../context/AuthContext';
 import client from '../api/client';
 import { useFocusEffect } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons'; // Assuming Expo
-
-const { width } = Dimensions.get('window');
+import { Ionicons } from '@expo/vector-icons';
 
 const StudentHomeScreen = ({ navigation }) => {
     const { userInfo } = useContext(AuthContext);
@@ -32,11 +30,9 @@ const StudentHomeScreen = ({ navigation }) => {
 
     useFocusEffect(
         useCallback(() => {
-            fetchDashboard(); // Immediate fetch on focus
+            fetchDashboard();
 
-            // Poll every 2 seconds for live status updates
             const intervalId = setInterval(() => {
-                // Silent fetch (no loading spinner for background updates)
                 client.get('/attendance/dashboard').then(res => {
                     setPeriods(res.data);
                     const ongoing = res.data.find(p => p.status === 'ongoing');
@@ -44,7 +40,7 @@ const StudentHomeScreen = ({ navigation }) => {
                 }).catch(err => console.log('Background fetch error', err));
             }, 2000);
 
-            return () => clearInterval(intervalId); // Cleanup on blur
+            return () => clearInterval(intervalId);
         }, [])
     );
 
@@ -153,6 +149,13 @@ const StudentHomeScreen = ({ navigation }) => {
                 <Text style={styles.fullScheduleText}>View Full Weekly Schedule</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity
+                style={[styles.fullScheduleBtn, { marginTop: 15, backgroundColor: '#d1fae5' }]}
+                onPress={() => navigation.navigate('ODApply')}
+            >
+                <Text style={[styles.fullScheduleText, { color: '#065f46' }]}>Apply for On-Duty</Text>
+            </TouchableOpacity>
+
             <View style={{ height: 40 }} />
         </ScrollView>
     );
@@ -165,7 +168,6 @@ const styles = StyleSheet.create({
     userName: { fontSize: 24, fontWeight: '800', color: '#333' },
     dateBadge: { backgroundColor: '#eef2f5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
     dateText: { color: '#555', fontWeight: '600' },
-
     shadow: {
         elevation: 10,
         shadowColor: '#000',
@@ -187,7 +189,6 @@ const styles = StyleSheet.create({
     heroSubject: { fontSize: 22, fontWeight: 'bold', color: '#2c3e50', marginBottom: 5 },
     heroTeacher: { fontSize: 14, color: '#7f8c8d', marginBottom: 20 },
     actionLabel: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 15 },
-
     buttonRow: { flexDirection: 'row', justifyContent: 'space-between' },
     actionBtn: {
         flex: 1,
@@ -201,7 +202,6 @@ const styles = StyleSheet.create({
     otpBtn: { backgroundColor: '#4834d4' },
     qrBtn: { backgroundColor: '#130f40' },
     btnText: { color: '#fff', fontWeight: 'bold', marginLeft: 8 },
-
     heroPlaceholder: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -214,7 +214,6 @@ const styles = StyleSheet.create({
         borderColor: '#e0e0e0'
     },
     placeholderText: { color: '#aaa', marginTop: 10, fontWeight: '500' },
-
     sectionTitle: { fontSize: 18, fontWeight: '700', color: '#333', marginBottom: 15 },
     listContainer: { paddingBottom: 20 },
     classCard: {

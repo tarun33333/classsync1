@@ -53,19 +53,24 @@ const login = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (user && (await user.matchPassword(password))) {
-            // MAC Binding Check for Students
+            let advisorName = null;
             if (user.role === 'student') {
+                const advisor = await User.findOne({
+                    isAdvisor: true,
+                    advisorDept: user.department,
+                    advisorBatch: user.batch
+                });
+                if (advisor) advisorName = advisor.name;
+
+                // MAC Binding Check
                 if (!user.macAddress && macAddress) {
-                    // First login, bind MAC
                     user.macAddress = macAddress;
                     await user.save();
                 } else if (user.macAddress && macAddress) {
-                    // Verify MAC
                     if (user.macAddress !== macAddress) {
                         return res.status(403).json({ message: 'Device not recognized. Please use your registered device.' });
                     }
                 }
-                // If no macAddress sent, we might skip or warn. For now, assume it's sent.
             }
 
             res.json({
@@ -73,7 +78,13 @@ const login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                department: user.department,
+                rollNumber: user.rollNumber,
                 macAddress: user.macAddress,
+                isAdvisor: user.isAdvisor,
+                advisorBatch: user.advisorBatch,
+                advisorDept: user.advisorDept,
+                advisorName: advisorName,
                 token: generateToken(user._id),
             });
         } else {
@@ -90,6 +101,16 @@ const login = async (req, res) => {
 const verify = async (req, res) => {
     // If middleware passed, user is in req.user
     const user = await User.findById(req.user._id).select('-password');
+    let advisorName = null;
+    if (user.role === 'student') {
+        const advisor = await User.findOne({
+            isAdvisor: true,
+            advisorDept: user.department,
+            advisorBatch: user.batch
+        });
+        if (advisor) advisorName = advisor.name;
+    }
+
     if (user) {
         res.json({
             _id: user._id,
@@ -98,7 +119,11 @@ const verify = async (req, res) => {
             role: user.role,
             department: user.department,
             rollNumber: user.rollNumber,
-            macAddress: user.macAddress
+            macAddress: user.macAddress,
+            isAdvisor: user.isAdvisor,
+            advisorBatch: user.advisorBatch,
+            advisorDept: user.advisorDept,
+            advisorName: advisorName
         });
     } else {
         res.status(404).json({ message: 'User not found' });

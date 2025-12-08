@@ -51,7 +51,11 @@ const seedData = async () => {
                     email: `teacher${i}.${dept.toLowerCase()}@test.com`,
                     password: '111',
                     role: 'teacher',
-                    department: dept
+                    department: dept,
+                    // Make first CSE teacher an advisor
+                    isAdvisor: (dept === 'CSE' && i === 1),
+                    advisorBatch: (dept === 'CSE' && i === 1) ? '2022-2026' : undefined,
+                    advisorDept: (dept === 'CSE' && i === 1) ? 'CSE' : undefined
                 });
                 teachersByDept[dept].push(teacher);
             }

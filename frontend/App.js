@@ -16,6 +16,8 @@ import StudentHistoryScreen from './screens/StudentHistoryScreen';
 import StudentSummaryScreen from './screens/StudentSummaryScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import TimetableScreen from './screens/TimetableScreen';
+import ODApplyScreen from './screens/ODApplyScreen';
+import AdvisorDashboard from './screens/AdvisorDashboard';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -79,12 +81,14 @@ const AppNav = () => {
             <Stack.Screen name="TeacherMain" component={TeacherTabs} />
             <Stack.Screen name="TeacherSession" component={TeacherSessionScreen} options={{ headerShown: true }} />
             <Stack.Screen name="Timetable" component={TimetableScreen} options={{ title: 'Weekly Schedule', headerShown: true }} />
+            <Stack.Screen name="AdvisorDashboard" component={AdvisorDashboard} options={{ title: 'Pending Approvals', headerShown: true }} />
           </>
         ) : (
           <>
             <Stack.Screen name="StudentMain" component={StudentTabs} />
             <Stack.Screen name="StudentAttendance" component={StudentAttendanceScreen} options={{ headerShown: true }} />
             <Stack.Screen name="Timetable" component={TimetableScreen} options={{ title: 'Weekly Schedule', headerShown: true }} />
+            <Stack.Screen name="ODApply" component={ODApplyScreen} options={{ title: 'Apply for On-Duty', headerShown: true }} />
           </>
         )}
       </Stack.Navigator>

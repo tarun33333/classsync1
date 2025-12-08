@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const sessionSchema = new mongoose.Schema({
     teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     subject: { type: String, required: true },
-    section: { type: String }, // e.g., "A", "B"
+    section: { type: String }, // Optional, can derive from Routine
+    periodNo: { type: Number }, // 1-6
     startTime: { type: Date, default: Date.now },
     endTime: { type: Date },
     isActive: { type: Boolean, default: true },

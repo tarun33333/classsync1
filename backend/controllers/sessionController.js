@@ -69,7 +69,8 @@ const startSession = async (req, res) => {
             otp,
             qrCode,
             isActive: true,
-            routineId: routine._id // Link to routine
+            routineId: routine._id,
+            periodNo: routine.timetable.periods.periodNo // Save period number
         });
 
         res.status(201).json(session);
@@ -122,16 +123,52 @@ const endSession = async (req, res) => {
         const absentStudents = allStudents.filter(s => !presentStudentIds.includes(s._id.toString()));
 
         // 2. Mark Absent Students in Attendance Collection (for record keeping)
-        if (absentStudents.length > 0) {
-            const absentRecords = absentStudents.map(s => ({
-                session: sessionId,
-                student: s._id,
-                status: 'absent',
-                method: 'manual', // System marked
-                verified: true
-            }));
-            await Attendance.insertMany(absentRecords);
+        // Check for OD
+        const ODRequest = require('../models/ODRequest');
+        const sessionDate = new Date(session.createdAt);
+
+        for (const student of absentStudents) {
+            // Check if student has valid approved OD
+            // Check if student has valid approved OD
+            const od = await ODRequest.findOne({
+                student: student._id,
+                status: 'Approved',
+                fromDate: { $lte: sessionDate },
+                toDate: { $gte: sessionDate },
+                $or: [
+                    { odType: 'FullDay' },
+                    {
+                        odType: 'Period',
+                        periods: session.periodNo
+                    }
+                ]
+            });
+
+            if (od) {
+                // Mark as Present (OD)
+                await Attendance.create({
+                    session: sessionId,
+                    student: student._id,
+                    status: 'present',
+                    method: 'od',
+                    verified: true
+                });
+                // Add to present list for history count
+                presentStudentIds.push(student._id.toString());
+            } else {
+                // Mark as Absent
+                await Attendance.create({
+                    session: sessionId,
+                    student: student._id,
+                    status: 'absent',
+                    method: 'manual',
+                    verified: true
+                });
+            }
         }
+
+        // Recalculate absents after OD check
+        const finalAbsentCount = allStudents.length - presentStudentIds.length;
 
         // 3. Create ClassHistory Record (Archive)
         // reuse session._id to keep foreign keys valid
@@ -147,7 +184,7 @@ const endSession = async (req, res) => {
             bssid: session.bssid,
             ssid: session.ssid,
             presentCount: presentStudentIds.length,
-            absentCount: absentStudents.length
+            absentCount: finalAbsentCount
         });
 
         // 4. Delete Active Session
