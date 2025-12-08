@@ -26,8 +26,7 @@ const StudentHistoryScreen = () => {
 
             const marks = {};
             res.data.forEach(item => {
-                const dateStr = item.timestamp || item.session?.startTime || item.createdAt;
-                const date = new Date(dateStr).toISOString().split('T')[0];
+                const date = item.createdAt.split('T')[0];
                 marks[date] = {
                     marked: true,
                     dotColor: item.status === 'present' ? 'green' : 'red'
@@ -40,10 +39,7 @@ const StudentHistoryScreen = () => {
     };
 
     const filterHistoryByDate = (date) => {
-        const filtered = history.filter(item => {
-            const itemDateStr = item.timestamp || item.session?.startTime || item.createdAt;
-            return new Date(itemDateStr).toISOString().split('T')[0] === date;
-        });
+        const filtered = history.filter(item => item.createdAt.split('T')[0] === date);
         setDailyHistory(filtered);
     };
 
