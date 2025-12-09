@@ -88,7 +88,7 @@ const AppNav = () => {
             <Stack.Screen name="StudentMain" component={StudentTabs} />
             <Stack.Screen name="StudentAttendance" component={StudentAttendanceScreen} options={{ headerShown: true }} />
             <Stack.Screen name="Timetable" component={TimetableScreen} options={{ title: 'Weekly Schedule', headerShown: true }} />
-            <Stack.Screen name="ODApply" component={ODApplyScreen} options={{ title: 'Apply for On-Duty', headerShown: true }} />
+            <Stack.Screen name="ODApply" component={ODApplyScreen} options={{ headerShown: false }} />
           </>
         )}
       </Stack.Navigator>
