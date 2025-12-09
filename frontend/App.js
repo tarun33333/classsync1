@@ -1,10 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { ActivityIndicator, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as SplashScreen from 'expo-splash-screen';
+import { View, ActivityIndicator } from 'react-native';
+
+import CustomSplashScreen from './screens/CustomSplashScreen';
+import LoadingScreen from './components/LoadingScreen';
 
 import LoginScreen from './screens/LoginScreen';
 import TeacherHomeScreen from './screens/TeacherHomeScreen';
@@ -64,11 +68,7 @@ const AppNav = () => {
   const { userToken, userRole, isLoading } = useContext(AuthContext);
 
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen visible={true} message="Authenticating..." />;
   }
 
   return (
@@ -97,6 +97,42 @@ const AppNav = () => {
 };
 
 export default function App() {
+  const [appIsReady, setAppIsReady] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Prevent auto-hiding the native splash screen
+        await SplashScreen.preventAutoHideAsync();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
+
+  if (showSplash) {
+    return (
+      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+        <CustomSplashScreen onFinish={() => setShowSplash(false)} />
+      </View>
+    );
+  }
+
   return (
     <AuthProvider>
       <AppNav />
